@@ -1,52 +1,44 @@
 # frozen_string_literal: true
 
 require "fixture_bot/rails"
-require "tmpdir"
 
 RSpec.describe FixtureBot::Rails::SchemaLoader do
-  let(:schema_content) do
-    <<~RUBY
-      ActiveRecord::Schema.define(version: 2024_01_01_000000) do
-        create_table "users", force: :cascade do |t|
-          t.string "name"
-          t.string "email"
-          t.timestamps
-        end
+  before do
+    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
 
-        create_table "posts", force: :cascade do |t|
-          t.string "title"
-          t.text "body"
-          t.integer "author_id"
-          t.timestamps
-        end
-
-        add_foreign_key "posts", "users", column: "author_id"
-
-        create_table "tags", force: :cascade do |t|
-          t.string "name"
-          t.timestamps
-        end
-
-        create_table "posts_tags", id: false, force: :cascade do |t|
-          t.integer "post_id", null: false
-          t.integer "tag_id", null: false
-        end
+    ActiveRecord::Schema.define(version: 2024_01_01_000000) do
+      create_table "users", force: :cascade do |t|
+        t.string "name"
+        t.string "email"
+        t.timestamps
       end
-    RUBY
-  end
 
-  let(:schema_path) do
-    dir = Dir.mktmpdir
-    path = File.join(dir, "schema.rb")
-    File.write(path, schema_content)
-    path
+      create_table "posts", force: :cascade do |t|
+        t.string "title"
+        t.text "body"
+        t.integer "author_id"
+        t.timestamps
+      end
+
+      add_foreign_key "posts", "users", column: "author_id"
+
+      create_table "tags", force: :cascade do |t|
+        t.string "name"
+        t.timestamps
+      end
+
+      create_table "posts_tags", id: false, force: :cascade do |t|
+        t.integer "post_id", null: false
+        t.integer "tag_id", null: false
+      end
+    end
   end
 
   after do
-    FileUtils.rm_rf(File.dirname(schema_path))
+    ActiveRecord::Base.connection_pool.disconnect!
   end
 
-  subject(:schema) { described_class.load_file(schema_path) }
+  subject(:schema) { described_class.load }
 
   it "loads regular tables with columns" do
     expect(schema.tables.keys).to contain_exactly(:users, :posts, :tags)

@@ -10,19 +10,12 @@ module FixtureBot
       end
 
       desc "generate FIXTURES_FILE [OUTPUT_DIR]", "Generate YAML fixtures from a DSL file"
-      option :schema, type: :string, default: "db/schema.rb", aliases: "-s", desc: "Path to schema.rb"
       def generate(fixtures_path, output_dir = "test/fixtures")
-        schema_path = options[:schema]
-
-        unless File.exist?(schema_path)
-          raise Thor::Error, "Schema file not found: #{schema_path}"
-        end
-
         unless File.exist?(fixtures_path)
           raise Thor::Error, "Fixtures file not found: #{fixtures_path}"
         end
 
-        schema = SchemaLoader.load_file(schema_path)
+        schema = SchemaLoader.load
         fixture_set = FixtureBot.define_from_file(schema, fixtures_path)
         YamlDumper.new(fixture_set).dump(output_dir)
 
