@@ -121,6 +121,19 @@ RSpec.describe FixtureBot do
       expect(result.tables[:users][:admin][:email]).to eq("brad@blog.test")
     end
 
+    it "preserves explicit nil over generator" do
+      result = FixtureBot.define(schema) do
+        user.email { "#{name}@blog.test" }
+
+        user :admin do
+          name "Brad"
+          email nil
+        end
+      end
+
+      expect(result.tables[:users][:admin][:email]).to be_nil
+    end
+
     it "uses record_name as default name" do
       result = FixtureBot.define(schema) do
         user.email { "#{name}@blog.test" }

@@ -1,0 +1,12 @@
+FixtureBot.define do
+  # Define your fixtures here. Example:
+  #
+  #   user :alice do
+  #     name "Alice"
+  #     email "alice@example.com"
+  #   end
+  #
+  #   user :bob do
+  #     name "Bob"
+  #   end
+end

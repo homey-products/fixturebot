@@ -1,0 +1,104 @@
+# frozen_string_literal: true
+
+require "fixturebot/rails"
+require "tmpdir"
+
+RSpec.describe FixtureBot::Rails, ".generate" do
+  before do
+    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+
+    ActiveRecord::Schema.define(version: 2024_01_01_000000) do
+      create_table "users", force: :cascade do |t|
+        t.string "name"
+        t.string "email"
+        t.timestamps
+      end
+
+      create_table "posts", force: :cascade do |t|
+        t.string "title"
+        t.text "body"
+        t.integer "author_id"
+        t.timestamps
+      end
+
+      add_foreign_key "posts", "users", column: "author_id"
+    end
+  end
+
+  after do
+    ActiveRecord::Base.connection_pool.disconnect!
+  end
+
+  it "generates YAML fixture files from a DSL file" do
+    Dir.mktmpdir do |tmpdir|
+      fixtures_file = File.join(tmpdir, "fixtures.rb")
+      output_dir = File.join(tmpdir, "fixtures")
+
+      File.write(fixtures_file, <<~RUBY)
+        FixtureBot.define do
+          user :alice do
+            name "Alice"
+            email "alice@example.com"
+          end
+
+          user :bob do
+            name "Bob"
+            email "bob@example.com"
+          end
+
+          post :hello do
+            title "Hello World"
+            body "First post"
+            author :alice
+          end
+        end
+      RUBY
+
+      described_class.generate(fixtures_file: fixtures_file, output_dir: output_dir)
+
+      users_yaml = YAML.load_file(File.join(output_dir, "users.yml"))
+      expect(users_yaml.keys).to contain_exactly("alice", "bob")
+      expect(users_yaml["alice"]["name"]).to eq("Alice")
+      expect(users_yaml["alice"]["email"]).to eq("alice@example.com")
+      expect(users_yaml["bob"]["name"]).to eq("Bob")
+
+      posts_yaml = YAML.load_file(File.join(output_dir, "posts.yml"))
+      expect(posts_yaml.keys).to contain_exactly("hello")
+      expect(posts_yaml["hello"]["title"]).to eq("Hello World")
+    end
+  end
+
+  it "skips empty tables" do
+    Dir.mktmpdir do |tmpdir|
+      fixtures_file = File.join(tmpdir, "fixtures.rb")
+      output_dir = File.join(tmpdir, "fixtures")
+
+      File.write(fixtures_file, <<~RUBY)
+        FixtureBot.define do
+          user :alice do
+            name "Alice"
+            email "alice@example.com"
+          end
+        end
+      RUBY
+
+      described_class.generate(fixtures_file: fixtures_file, output_dir: output_dir)
+
+      expect(File.exist?(File.join(output_dir, "users.yml"))).to be true
+      expect(File.exist?(File.join(output_dir, "posts.yml"))).to be false
+    end
+  end
+
+  it "returns early when fixtures file does not exist" do
+    Dir.mktmpdir do |tmpdir|
+      output_dir = File.join(tmpdir, "fixtures")
+
+      described_class.generate(
+        fixtures_file: File.join(tmpdir, "nonexistent.rb"),
+        output_dir: output_dir
+      )
+
+      expect(Dir.exist?(output_dir)).to be false
+    end
+  end
+end
