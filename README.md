@@ -12,6 +12,12 @@ FixtureBot lets you define your test data in a Ruby DSL and compiles it into sta
 - **Schema auto-detection** from your Rails database (no manual column lists)
 - **Auto-generates** before your test suite runs (RSpec and Minitest)
 
+## Read the article
+
+More background at [BeautifulRuby.com](https://beautifulruby.com/code/fixturebot).
+
+[![Screenshot of Don't throw the specs out with the factories article](https://immutable.terminalwire.com/frotvIWicKOgyNTufNGKSjpaI3RecS7IoO4hAWFycOC4zMopBylYljvcg62Br7NGHwsMikw3U5eLxQ0CpI7aVaVkLNLhCYK6OYI9.jpeg)](https://beautifulruby.com/code/fixturebot)
+
 ## Quick example
 
 ```ruby
