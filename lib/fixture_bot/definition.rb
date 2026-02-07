@@ -5,6 +5,8 @@ require_relative "row_dsl"
 
 module FixtureBot
   class Definition
+    include Inflections
+
     attr_reader :generators, :rows
 
     def initialize(schema)
@@ -38,19 +40,5 @@ module FixtureBot
       end
     end
 
-    private
-
-    def singularize(name)
-      word = name.to_s
-      if word.end_with?("ies")
-        word[0..-4] + "y"
-      elsif word.end_with?("ses", "xes", "zes", "ches", "shes")
-        word[0..-3]
-      elsif word.end_with?("s") && !word.end_with?("ss")
-        word[0..-2]
-      else
-        word
-      end
-    end
   end
 end

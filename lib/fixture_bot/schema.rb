@@ -21,6 +21,8 @@ module FixtureBot
     end
 
     class Builder
+      include Inflections
+
       def initialize(schema)
         @schema = schema
       end
@@ -44,21 +46,6 @@ module FixtureBot
           left_foreign_key: left_fk,
           right_foreign_key: right_fk
         )
-      end
-
-      private
-
-      def singularize(name)
-        word = name.to_s
-        if word.end_with?("ies")
-          word[0..-4] + "y"
-        elsif word.end_with?("ses", "xes", "zes", "ches", "shes")
-          word[0..-3]
-        elsif word.end_with?("s") && !word.end_with?("ss")
-          word[0..-2]
-        else
-          word
-        end
       end
     end
 
