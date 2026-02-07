@@ -25,32 +25,34 @@ The generated YAML files are static snapshots you can inspect, diff, and commit.
 Create `spec/fixtures.rb`:
 
 ```ruby
-# Generators — these run for every record unless overridden
-user.email { "#{name}@example.com" }
+FixtureBot.define do
+  # Generators — these run for every record unless overridden
+  user.email { "#{name}@example.com" }
 
-# Records
-user :brad do
-  name "Brad"
-  email "brad@example.com"
-end
+  # Records
+  user :brad do
+    name "Brad"
+    email "brad@example.com"
+  end
 
-user :alice do
-  name "Alice"
-end
+  user :alice do
+    name "Alice"
+  end
 
-post :hello_world do
-  title "Hello World"
-  body "Welcome to the blog!"
-  author :brad
-  tags :ruby, :rails
-end
+  post :hello_world do
+    title "Hello World"
+    body "Welcome to the blog!"
+    author :brad
+    tags :ruby, :rails
+  end
 
-tag :ruby do
-  name "Ruby"
-end
+  tag :ruby do
+    name "Ruby"
+  end
 
-tag :rails do
-  name "Rails"
+  tag :rails do
+    name "Rails"
+  end
 end
 ```
 
@@ -106,21 +108,23 @@ end
 Create `test/fixtures.rb`:
 
 ```ruby
-user.email { "#{name}@example.com" }
+FixtureBot.define do
+  user.email { "#{name}@example.com" }
 
-user :brad do
-  name "Brad"
-  email "brad@example.com"
-end
+  user :brad do
+    name "Brad"
+    email "brad@example.com"
+  end
 
-user :alice do
-  name "Alice"
-end
+  user :alice do
+    name "Alice"
+  end
 
-post :hello_world do
-  title "Hello World"
-  body "Welcome to the blog!"
-  author :brad
+  post :hello_world do
+    title "Hello World"
+    body "Welcome to the blog!"
+    author :brad
+  end
 end
 ```
 
@@ -173,27 +177,55 @@ FixtureBot::Schema.define do
 end
 ```
 
+### Implicit vs explicit style
+
+By default, the block is evaluated implicitly — table methods like `user` and `post` are available directly:
+
+```ruby
+FixtureBot.define do
+  user :brad do
+    name "Brad"
+  end
+end
+```
+
+If you prefer an explicit receiver (useful for editor autocompletion or clarity in large files), pass a block argument:
+
+```ruby
+FixtureBot.define do |t|
+  t.user :brad do
+    name "Brad"
+  end
+end
+```
+
+Both styles are equivalent. Record blocks (the inner `do...end`) are always implicit.
+
 ### Generators
 
 Set default values for columns. The block runs for each record and has access to the record name:
 
 ```ruby
-user.email { "#{name}@example.com" }
+FixtureBot.define do
+  user.email { "#{name}@example.com" }
+end
 ```
 
 If a record sets a literal value for that column, it shadows the generator:
 
 ```ruby
-user.email { "#{name}@example.com" }
+FixtureBot.define do
+  user.email { "#{name}@example.com" }
 
-user :brad do
-  name "Brad"           # generator sees name as "Brad", not "brad"
-  email "brad@hey.com"  # literal — skips the generator entirely
-end
+  user :brad do
+    name "Brad"           # generator sees name as "Brad", not "brad"
+    email "brad@hey.com"  # literal — skips the generator entirely
+  end
 
-user :alice do
-  name "Alice"
-  # email generated as "Alice@example.com"
+  user :alice do
+    name "Alice"
+    # email generated as "Alice@example.com"
+  end
 end
 ```
 
@@ -202,17 +234,21 @@ end
 Define named records with literal column values:
 
 ```ruby
-user :brad do
-  name "Brad"
-  email "brad@example.com"
+FixtureBot.define do
+  user :brad do
+    name "Brad"
+    email "brad@example.com"
+  end
 end
 ```
 
 Records without a block get an auto-generated ID and any generator defaults:
 
 ```ruby
-user :alice
-# => { id: <stable_id>, email: "alice@example.com" }
+FixtureBot.define do
+  user :alice
+  # => { id: <stable_id>, email: "alice@example.com" }
+end
 ```
 
 ### Associations
@@ -220,9 +256,11 @@ user :alice
 Reference other records by name for `belongs_to`:
 
 ```ruby
-post :hello_world do
-  title "Hello World"
-  author :brad  # sets author_id to brad's stable ID
+FixtureBot.define do
+  post :hello_world do
+    title "Hello World"
+    author :brad  # sets author_id to brad's stable ID
+  end
 end
 ```
 
@@ -231,9 +269,11 @@ end
 Reference multiple records for join table associations:
 
 ```ruby
-post :hello_world do
-  title "Hello World"
-  tags :ruby, :rails  # creates rows in posts_tags
+FixtureBot.define do
+  post :hello_world do
+    title "Hello World"
+    tags :ruby, :rails  # creates rows in posts_tags
+  end
 end
 ```
 
@@ -244,5 +284,5 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 Try the playground without Rails:
 
 ```bash
-bundle exec exe/fixturedump show ./playground/blog
+bundle exec exe/fixturebot show ./playground/blog
 ```

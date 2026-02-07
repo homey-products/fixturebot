@@ -1,58 +1,60 @@
-user.email { "#{name}@blog.test" }
+FixtureBot.define do
+  user.email { "#{name}@blog.test" }
 
-user :brad do
-  name "Brad"
-  email "brad@blog.test"
-end
+  user :brad do
+    name "Brad"
+    email "brad@blog.test"
+  end
 
-user :alice do
-  name "Alice"
-end
+  user :alice do
+    name "Alice"
+  end
 
-user :charlie do
-  name "Charlie"
-end
+  user :charlie do
+    name "Charlie"
+  end
 
-tag :ruby do
-  name "Ruby"
-end
+  tag :ruby do
+    name "Ruby"
+  end
 
-tag :rails do
-  name "Rails"
-end
+  tag :rails do
+    name "Rails"
+  end
 
-tag :testing do
-  name "Testing"
-end
+  tag :testing do
+    name "Testing"
+  end
 
-post :hello_world do
-  title "Hello World"
-  body "Welcome to the blog!"
-  author :brad
-  tags :ruby, :rails
-end
+  post :hello_world do
+    title "Hello World"
+    body "Welcome to the blog!"
+    author :brad
+    tags :ruby, :rails
+  end
 
-post :tdd_guide do
-  title "Getting Started with TDD"
-  body "Test-driven development is a practice where you write tests before code."
-  author :alice
-  tags :ruby, :testing
-end
+  post :tdd_guide do
+    title "Getting Started with TDD"
+    body "Test-driven development is a practice where you write tests before code."
+    author :alice
+    tags :ruby, :testing
+  end
 
-comment :great_post do
-  body "Great post, thanks for sharing!"
-  post :hello_world
-  author :alice
-end
+  comment :great_post do
+    body "Great post, thanks for sharing!"
+    post :hello_world
+    author :alice
+  end
 
-comment :helpful do
-  body "This was really helpful."
-  post :tdd_guide
-  author :charlie
-end
+  comment :helpful do
+    body "This was really helpful."
+    post :tdd_guide
+    author :charlie
+  end
 
-comment :follow_up do
-  body "Could you write a follow-up on mocking?"
-  post :tdd_guide
-  author :brad
+  comment :follow_up do
+    body "Could you write a follow-up on mocking?"
+    post :tdd_guide
+    author :brad
+  end
 end
