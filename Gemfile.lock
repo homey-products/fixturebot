@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     fixturebot (0.1.0)
+      thor
 
 GEM
   remote: https://rubygems.org/
@@ -91,7 +92,6 @@ DEPENDENCIES
   rake (~> 13.0)
   rspec (~> 3.0)
   sqlite3
-  thor
 
 CHECKSUMS
   activemodel (8.1.2) sha256=e21358c11ce68aed3f9838b7e464977bc007b4446c6e4059781e1d5c03bcf33e

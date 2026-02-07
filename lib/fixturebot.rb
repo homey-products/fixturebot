@@ -11,6 +11,7 @@ require_relative "fixturebot/definition"
 require_relative "fixturebot/record_builder"
 require_relative "fixturebot/fixture_set"
 require_relative "fixturebot/yaml_dumper"
+require_relative "fixturebot/cli"
 
 module FixtureBot
   class Error < StandardError; end

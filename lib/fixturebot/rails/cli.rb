@@ -1,14 +1,10 @@
 # frozen_string_literal: true
 
-require "thor"
+require "fixturebot/cli"
 
 module FixtureBot
   module Rails
-    class CLI < Thor
-      def self.exit_on_failure?
-        true
-      end
-
+    class CLI < FixtureBot::CLI
       desc "generate FIXTURES_FILE [OUTPUT_DIR]", "Generate YAML fixtures from a DSL file"
       def generate(fixtures_path, output_dir = "test/fixtures")
         unless File.exist?(fixtures_path)
@@ -24,12 +20,6 @@ module FixtureBot
           next if records.empty?
           say "  #{table_name}.yml (#{records.size} records)"
         end
-      end
-
-      map %w[-v --version] => :version
-      desc "version", "Show version"
-      def version
-        say "fixturebot #{FixtureBot::VERSION}"
       end
     end
   end
