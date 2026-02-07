@@ -3,4 +3,4 @@
 
 require "fixture_bot/rails"
 
-FixtureBot::Rails::CLI.run(ARGV)
+FixtureBot::Rails::CLI.start(ARGV)
