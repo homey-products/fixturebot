@@ -5,7 +5,6 @@ require "active_record"
 module FixtureBot
   module Rails
     class SchemaLoader
-      include Inflections
 
       def self.load_file(path)
         new.load_file(path)
@@ -47,7 +46,9 @@ module FixtureBot
           end
 
           schema.tables[name.to_sym] = Schema::Table.new(
-            name: name.to_sym, columns: columns,
+            name: name.to_sym,
+            singular_name: ActiveSupport::Inflector.singularize(name).to_sym,
+            columns: columns,
             belongs_to_associations: associations
           )
         end
@@ -59,8 +60,8 @@ module FixtureBot
 
           schema.join_tables[name.to_sym] = Schema::JoinTable.new(
             name: name.to_sym,
-            left_table: pluralize(fk_columns[0].sub(/_id$/, "")).to_sym,
-            right_table: pluralize(fk_columns[1].sub(/_id$/, "")).to_sym,
+            left_table: ActiveSupport::Inflector.pluralize(fk_columns[0].sub(/_id$/, "")).to_sym,
+            right_table: ActiveSupport::Inflector.pluralize(fk_columns[1].sub(/_id$/, "")).to_sym,
             left_foreign_key: fk_columns[0].to_sym,
             right_foreign_key: fk_columns[1].to_sym
           )

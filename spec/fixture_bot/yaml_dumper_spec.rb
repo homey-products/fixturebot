@@ -6,8 +6,8 @@ require "yaml"
 RSpec.describe FixtureBot::YamlDumper do
   let(:schema) do
     FixtureBot::Schema.define do
-      table :users, columns: [:name, :email]
-      table :posts, columns: [:title, :author_id] do
+      table :users, singular: :user, columns: [:name, :email]
+      table :posts, singular: :post, columns: [:title, :author_id] do
         belongs_to :author, table: :users
       end
     end

@@ -8,11 +8,11 @@ RSpec.describe FixtureBot do
   describe ".define" do
     let(:schema) do
       FixtureBot::Schema.define do
-        table :users, columns: [:name, :email]
-        table :posts, columns: [:title, :body, :author_id] do
+        table :users, singular: :user, columns: [:name, :email]
+        table :posts, singular: :post, columns: [:title, :body, :author_id] do
           belongs_to :author, table: :users
         end
-        table :tags, columns: [:name]
+        table :tags, singular: :tag, columns: [:name]
         join_table :posts_tags, :posts, :tags
       end
     end
@@ -105,7 +105,7 @@ RSpec.describe FixtureBot do
   describe "generator shadowing" do
     let(:schema) do
       FixtureBot::Schema.define do
-        table :users, columns: [:name, :email]
+        table :users, singular: :user, columns: [:name, :email]
       end
     end
 
@@ -135,7 +135,7 @@ RSpec.describe FixtureBot do
   describe "unknown method errors" do
     let(:schema) do
       FixtureBot::Schema.define do
-        table :users, columns: [:name, :email]
+        table :users, singular: :user, columns: [:name, :email]
       end
     end
 

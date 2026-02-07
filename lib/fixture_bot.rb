@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "fixture_bot/version"
-require_relative "fixture_bot/inflections"
 require_relative "fixture_bot/schema"
 require_relative "fixture_bot/stable_id"
 require_relative "fixture_bot/definition"

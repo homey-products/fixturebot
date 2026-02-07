@@ -5,8 +5,6 @@ require_relative "row_dsl"
 
 module FixtureBot
   class Definition
-    include Inflections
-
     attr_reader :generators, :rows
 
     def initialize(schema)
@@ -15,7 +13,7 @@ module FixtureBot
       @rows = []       # [{ table:, name:, literal_values:, association_refs:, tag_refs: }]
 
       schema.tables.each_value do |table_def|
-        singular = singularize(table_def.name)
+        singular = table_def.singular_name.to_s
         @generators[table_def.name] = {}
 
         define_singleton_method(singular) do |record_name = nil, &block|
