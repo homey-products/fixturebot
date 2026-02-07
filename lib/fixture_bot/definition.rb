@@ -1,42 +1,49 @@
 # frozen_string_literal: true
 
-require_relative "generator_proxy"
-require_relative "row_dsl"
-
 module FixtureBot
   class Definition
     attr_reader :generators, :rows
 
     def initialize(schema)
       @schema = schema
-      @generators = {} # { table_name => { column => block } }
-      @rows = []       # [{ table:, name:, literal_values:, association_refs:, tag_refs: }]
+      @generators = {}
+      @rows = []
 
       schema.tables.each_value do |table_def|
-        singular = table_def.singular_name.to_s
         @generators[table_def.name] = {}
-
-        define_singleton_method(singular) do |record_name = nil, &block|
-          if record_name.nil? && block.nil?
-            # Generator mode: user.email { ... }
-            GeneratorProxy.new(table_def, @generators[table_def.name])
-          elsif record_name
-            # Row mode: user :admin do ... end
-            row_dsl = RowDSL.new(table_def, @schema)
-            row_dsl.instance_eval(&block) if block
-            @rows << {
-              table: table_def.name,
-              name: record_name,
-              literal_values: row_dsl.literal_values,
-              association_refs: row_dsl.association_refs,
-              tag_refs: row_dsl.tag_refs
-            }
-          else
-            raise ArgumentError, "#{singular} requires a record name or no arguments"
-          end
-        end
       end
     end
 
+    private
+
+    def method_missing(method_name, *args, &block)
+      table_def = find_table(method_name)
+      return super unless table_def
+
+      if args.empty? && block.nil?
+        GeneratorProxy.new(table_def, @generators[table_def.name])
+      elsif args.first
+        record_name = args.first
+        row_dsl = RowDSL.new(table_def, @schema)
+        row_dsl.instance_eval(&block) if block
+        @rows << Row.new(
+          table: table_def.name,
+          name: record_name,
+          literal_values: row_dsl.literal_values,
+          association_refs: row_dsl.association_refs,
+          tag_refs: row_dsl.tag_refs
+        )
+      else
+        raise ArgumentError, "#{method_name} requires a record name or no arguments"
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      find_table(method_name) || super
+    end
+
+    def find_table(singular_name)
+      @schema.tables.values.find { |t| t.singular_name.to_s == singular_name.to_s }
+    end
   end
 end

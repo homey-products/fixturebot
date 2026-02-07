@@ -2,20 +2,24 @@
 
 module FixtureBot
   class GeneratorProxy
-    attr_reader :generators
-
     def initialize(table_def, generators)
+      @table_def = table_def
       @generators = generators
+    end
 
-      table_def.columns.each do |col|
-        define_singleton_method(col) do |&block|
-          if block
-            @generators[col] = block
-          else
-            raise ArgumentError, "#{col} requires a block when called on a generator proxy"
-          end
-        end
+    private
+
+    def method_missing(method_name, *args, &block)
+      if @table_def.columns.include?(method_name)
+        raise ArgumentError, "#{method_name} requires a block" unless block
+        @generators[method_name] = block
+      else
+        super
       end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      @table_def.columns.include?(method_name) || super
     end
   end
 end

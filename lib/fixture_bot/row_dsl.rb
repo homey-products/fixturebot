@@ -5,41 +5,49 @@ module FixtureBot
     attr_reader :literal_values, :association_refs, :tag_refs
 
     def initialize(table_def, schema)
+      @table_def = table_def
+      @schema = schema
       @literal_values = {}
       @association_refs = {}
       @tag_refs = {}
+      @join_table_map = build_join_table_map
+    end
 
-      # Define column setter methods
-      table_def.columns.each do |col|
-        define_singleton_method(col) do |value = :__unset__|
-          if value == :__unset__
-            raise ArgumentError, "#{col} requires a value"
-          end
-          @literal_values[col] = value
+    private
+
+    def method_missing(method_name, *args)
+      if @table_def.columns.include?(method_name)
+        @literal_values[method_name] = args.first
+      elsif (assoc = find_association(method_name))
+        @association_refs[assoc.name] = args.first
+      elsif (jt_info = @join_table_map[method_name])
+        @tag_refs[jt_info[:join_table]] = { table: jt_info[:other_table], refs: args }
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      @table_def.columns.include?(method_name) ||
+        find_association(method_name) ||
+        @join_table_map.key?(method_name) ||
+        super
+    end
+
+    def find_association(name)
+      @table_def.belongs_to_associations.find { |a| a.name == name }
+    end
+
+    def build_join_table_map
+      map = {}
+      @schema.join_tables.each_value do |jt|
+        if jt.left_table == @table_def.name
+          map[jt.right_table] = { join_table: jt.name, other_table: jt.right_table }
+        elsif jt.right_table == @table_def.name
+          map[jt.left_table] = { join_table: jt.name, other_table: jt.left_table }
         end
       end
-
-      # Define belongs_to association methods
-      table_def.belongs_to_associations.each do |assoc|
-        define_singleton_method(assoc.name) do |ref|
-          @association_refs[assoc.name] = ref
-        end
-      end
-
-      # Define tag/HABTM methods based on join tables
-      schema.join_tables.each_value do |jt|
-        if jt.left_table == table_def.name
-          method_name = jt.right_table
-          define_singleton_method(method_name) do |*refs|
-            @tag_refs[jt.name] = { table: jt.right_table, refs: refs }
-          end
-        elsif jt.right_table == table_def.name
-          method_name = jt.left_table
-          define_singleton_method(method_name) do |*refs|
-            @tag_refs[jt.name] = { table: jt.left_table, refs: refs }
-          end
-        end
-      end
+      map
     end
   end
 end

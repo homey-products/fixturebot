@@ -13,6 +13,14 @@ module FixtureBot
       @join_tables = {}
     end
 
+    def add_table(table)
+      @tables[table.name] = table
+    end
+
+    def add_join_table(join_table)
+      @join_tables[join_table.name] = join_table
+    end
+
     def self.define(&block)
       schema = new
       builder = Builder.new(schema)
@@ -31,21 +39,24 @@ module FixtureBot
           table_builder = TableBuilder.new(associations)
           table_builder.instance_eval(&block)
         end
-        @schema.tables[name] = Table.new(name: name, singular_name: singular, columns: columns, belongs_to_associations: associations)
+        @schema.add_table(Table.new(
+          name: name,
+          singular_name: singular,
+          columns: columns,
+          belongs_to_associations: associations
+        ))
       end
 
       def join_table(name, left_table, right_table)
         left_singular = @schema.tables[left_table].singular_name
         right_singular = @schema.tables[right_table].singular_name
-        left_fk = :"#{left_singular}_id"
-        right_fk = :"#{right_singular}_id"
-        @schema.join_tables[name] = JoinTable.new(
+        @schema.add_join_table(JoinTable.new(
           name: name,
           left_table: left_table,
           right_table: right_table,
-          left_foreign_key: left_fk,
-          right_foreign_key: right_fk
-        )
+          left_foreign_key: :"#{left_singular}_id",
+          right_foreign_key: :"#{right_singular}_id"
+        ))
       end
     end
 

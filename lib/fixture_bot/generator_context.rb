@@ -2,19 +2,26 @@
 
 module FixtureBot
   class GeneratorContext
-    attr_reader :record_name, :table
-
     def initialize(record_name:, table:, literal_values: {})
       @record_name = record_name
       @table = table
+      @literal_values = literal_values
+    end
 
-      # `name` defaults to record_name but can be shadowed by a literal column value
-      define_singleton_method(:name) { record_name }
+    private
 
-      # Shadow `name` and any other columns with literal values
-      literal_values.each do |col, val|
-        define_singleton_method(col) { val }
+    def method_missing(method_name, *args)
+      if @literal_values.key?(method_name)
+        @literal_values[method_name]
+      elsif method_name == :name
+        @record_name
+      else
+        super
       end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      @literal_values.key?(method_name) || method_name == :name || super
     end
   end
 end

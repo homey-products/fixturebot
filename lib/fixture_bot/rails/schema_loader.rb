@@ -43,12 +43,12 @@ module FixtureBot
             )
           end
 
-          schema.tables[name.to_sym] = Schema::Table.new(
+          schema.add_table(Schema::Table.new(
             name: name.to_sym,
             singular_name: ActiveSupport::Inflector.singularize(name).to_sym,
             columns: columns,
             belongs_to_associations: associations
-          )
+          ))
         end
 
         join_table_names.each do |name|
@@ -56,13 +56,13 @@ module FixtureBot
             .select { |c| c.name.end_with?("_id") }
             .map { |c| c.name }
 
-          schema.join_tables[name.to_sym] = Schema::JoinTable.new(
+          schema.add_join_table(Schema::JoinTable.new(
             name: name.to_sym,
             left_table: ActiveSupport::Inflector.pluralize(fk_columns[0].sub(/_id$/, "")).to_sym,
             right_table: ActiveSupport::Inflector.pluralize(fk_columns[1].sub(/_id$/, "")).to_sym,
             left_foreign_key: fk_columns[0].to_sym,
             right_foreign_key: fk_columns[1].to_sym
-          )
+          ))
         end
 
         schema
