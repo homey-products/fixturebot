@@ -1,83 +1,16 @@
 # FixtureBot
 
-Rails fixtures are fast — they're loaded once into the database and wrapped in transactions, so your tests don't pay the cost of creating records on every run. But writing YAML by hand is verbose, error-prone, and painful to maintain at scale.
+The syntactic sugar of factories with the speed of fixtures.
 
-Factories like FactoryBot have a great DSL, but they're slow. Every test creates records from scratch, and that cost compounds as your suite grows.
+FixtureBot lets you define your test data in a Ruby DSL and compiles it into standard Rails fixture YAML files. The generated YAML is deterministic and should be checked into git, just like a lockfile. Your tests never see FixtureBot at runtime; Rails just loads the YAML fixtures as usual.
 
-FixtureBot gives you the best of both: a Ruby DSL that feels like FactoryBot, backed by the speed of Rails fixtures. You define your test data in Ruby, and FixtureBot generates standard YAML fixture files that Rails loads normally.
+**Features:**
 
-## Installation
-
-Add to your Gemfile:
-
-```ruby
-gem "fixturebot"
-```
-
-### Rails generator
-
-The easiest way to get started is with the install generator:
-
-```bash
-rails generate fixturebot:install
-```
-
-This will:
-
-- Create `spec/fixtures.rb` (RSpec) or `test/fixtures.rb` (Minitest) with a skeleton DSL file
-- Add the appropriate require to your test helper
-
-### Manual setup
-
-#### RSpec
-
-Add to `spec/rails_helper.rb`:
-
-```ruby
-require "fixturebot/rspec"
-```
-
-Create `spec/fixtures.rb` with your fixture definitions (see [The DSL](#the-dsl) below).
-
-Fixtures are auto-generated before each suite run — no rake task needed.
-
-#### Minitest
-
-Add to `test/test_helper.rb`:
-
-```ruby
-require "fixturebot/minitest"
-```
-
-Create `test/fixtures.rb` with your fixture definitions (see [The DSL](#the-dsl) below).
-
-Fixtures are auto-generated when the helper is loaded — no rake task needed.
-
-### Rake task
-
-A `fixturebot:generate` rake task is also available if you prefer manual control:
-
-```bash
-bundle exec rake fixturebot:generate
-```
-
-### Configuration
-
-FixtureBot auto-detects your fixtures file (`test/fixtures.rb` or `spec/fixtures.rb`) and derives the output directory by stripping `.rb` (e.g. `spec/fixtures.rb` writes to `spec/fixtures/`). To override:
-
-```ruby
-# config/application.rb or config/environments/test.rb
-config.fixturebot.fixtures_file = "test/my_fixtures.rb"
-config.fixturebot.output_dir = "test/fixtures"
-```
-
-## How it works
-
-1. You define your fixtures in a Ruby DSL file
-2. Before your test suite runs, FixtureBot reads your database schema and generates YAML fixture files
-3. Rails loads those fixtures as usual
-
-The generated YAML files are static snapshots you can inspect, diff, and commit. There's no magic at test time — Rails just sees normal fixtures.
+- **Ruby DSL** for defining records, associations, and join tables
+- **Generators** for filling in required columns (like email) across all records
+- **Stable IDs** so foreign keys are consistent and diffs are clean across runs
+- **Schema auto-detection** from your Rails database (no manual column lists)
+- **Auto-generates** before your test suite runs (RSpec and Minitest)
 
 ## Quick example
 
@@ -99,14 +32,14 @@ FixtureBot.define do
 
   user :deactivated do
     name "Ghost"
-    email nil                 # explicit nil — generator skipped, email set to null
+    email nil                 # explicit nil, generator skipped, email set to null
   end
 
   post :hello_world do
     title "Hello World"
     body "Welcome to the blog!"
-    author :brad
-    tags :ruby, :rails
+    author :brad              # sets author_id to brad's stable ID
+    tags :ruby, :rails        # creates rows in posts_tags
   end
 
   tag :ruby do
@@ -141,6 +74,68 @@ class PostTest < ActiveSupport::TestCase
 end
 ```
 
+## Installation
+
+Add to your Gemfile:
+
+```ruby
+gem "fixturebot"
+```
+
+### Rails generator
+
+The easiest way to get started:
+
+```bash
+rails generate fixturebot:install
+```
+
+This creates `spec/fixtures.rb` (RSpec) or `test/fixtures.rb` (Minitest) with a skeleton DSL file and adds the appropriate require to your test helper.
+
+### Manual setup
+
+#### RSpec
+
+Add to `spec/rails_helper.rb`:
+
+```ruby
+require "fixturebot/rspec"
+```
+
+Create `spec/fixtures.rb` with your fixture definitions.
+
+Fixtures are auto-generated before each suite run, no rake task needed.
+
+#### Minitest
+
+Add to `test/test_helper.rb`:
+
+```ruby
+require "fixturebot/minitest"
+```
+
+Create `test/fixtures.rb` with your fixture definitions.
+
+Fixtures are auto-generated when the helper is loaded, no rake task needed.
+
+### Rake task
+
+A `fixturebot:generate` rake task is also available if you prefer manual control:
+
+```bash
+bundle exec rake fixturebot:generate
+```
+
+### Configuration
+
+FixtureBot auto-detects your fixtures file (`test/fixtures.rb` or `spec/fixtures.rb`) and derives the output directory by stripping `.rb` (e.g. `spec/fixtures.rb` writes to `spec/fixtures/`). To override:
+
+```ruby
+# config/application.rb or config/environments/test.rb
+config.fixturebot.fixtures_file = "test/my_fixtures.rb"
+config.fixturebot.output_dir = "test/fixtures"
+```
+
 ## The DSL
 
 ### Records
@@ -169,7 +164,7 @@ end
 
 ### Generators
 
-Generators set default column values. They run for each record that doesn't explicitly set that column. Generators are never created implicitly — columns without a value or generator are omitted from the YAML output (Rails uses the database column default).
+Generators set default column values. They run for each record that doesn't explicitly set that column. Generators are never created implicitly; columns without a value or generator are omitted from the YAML output (Rails uses the database column default).
 
 ```ruby
 FixtureBot.define do
@@ -187,17 +182,17 @@ FixtureBot.define do
 
   user :brad do
     name "Brad"
-    email "brad@hey.com"  # literal — skips the generator
+    email "brad@hey.com"  # literal, skips the generator
   end
 
   user :alice do
     name "Alice"
-    # no email set — generator produces "Alice@example.com"
+    # no email set, generator produces "Alice@example.com"
   end
 
   user :deactivated do
     name "Ghost"
-    email nil              # explicit nil — skips the generator, sets email to null
+    email nil              # explicit nil, skips the generator, sets email to null
   end
 end
 ```
@@ -230,7 +225,7 @@ end
 
 ### Implicit vs explicit style
 
-By default, the block is evaluated implicitly — table methods like `user` and `post` are available directly:
+By default, the block is evaluated implicitly. Table methods like `user` and `post` are available directly:
 
 ```ruby
 FixtureBot.define do
