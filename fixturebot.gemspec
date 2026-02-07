@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "lib/fixture_bot/version"
+require_relative "lib/fixturebot/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "fixture_bot"
+  spec.name = "fixturebot"
   spec.version = FixtureBot::VERSION
   spec.authors = ["Brad Gessler"]
   spec.email = ["bradgessler@gmail.com"]

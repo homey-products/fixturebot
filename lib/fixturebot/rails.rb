@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
-require "fixture_bot"
+require "fixturebot"
 require_relative "rails/schema_loader"
 require_relative "rails/cli"

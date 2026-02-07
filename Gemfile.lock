@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    fixture_bot (0.1.0)
+    fixturebot (0.1.0)
 
 GEM
   remote: https://rubygems.org/
@@ -86,7 +86,7 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord (>= 7.0)
-  fixture_bot!
+  fixturebot!
   irb
   rake (~> 13.0)
   rspec (~> 3.0)
@@ -105,7 +105,7 @@ CHECKSUMS
   diff-lcs (1.6.2) sha256=9ae0d2cba7d4df3075fe8cd8602a8604993efc0dfa934cff568969efb1909962
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
   erb (6.0.1) sha256=28ecdd99c5472aebd5674d6061e3c6b0a45c049578b071e5a52c2a7f13c197e5
-  fixture_bot (0.1.0)
+  fixturebot (0.1.0)
   i18n (1.14.8) sha256=285778639134865c5e0f6269e0b818256017e8cde89993fdfcbfb64d088824a5
   io-console (0.8.2) sha256=d6e3ae7a7cc7574f4b8893b4fca2162e57a825b223a177b7afa236c5ef9814cc
   irb (1.16.0) sha256=2abe56c9ac947cdcb2f150572904ba798c1e93c890c256f8429981a7675b0806

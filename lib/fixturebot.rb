@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require_relative "fixture_bot/version"
-require_relative "fixture_bot/schema"
-require_relative "fixture_bot/stable_id"
-require_relative "fixture_bot/row"
-require_relative "fixture_bot/generator_context"
-require_relative "fixture_bot/generator_proxy"
-require_relative "fixture_bot/row_dsl"
-require_relative "fixture_bot/definition"
-require_relative "fixture_bot/record_builder"
-require_relative "fixture_bot/fixture_set"
-require_relative "fixture_bot/yaml_dumper"
+require_relative "fixturebot/version"
+require_relative "fixturebot/schema"
+require_relative "fixturebot/stable_id"
+require_relative "fixturebot/row"
+require_relative "fixturebot/generator_context"
+require_relative "fixturebot/generator_proxy"
+require_relative "fixturebot/row_dsl"
+require_relative "fixturebot/definition"
+require_relative "fixturebot/record_builder"
+require_relative "fixturebot/fixture_set"
+require_relative "fixturebot/yaml_dumper"
 
 module FixtureBot
   class Error < StandardError; end

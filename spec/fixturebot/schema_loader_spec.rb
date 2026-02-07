@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "fixture_bot/rails"
+require "fixturebot/rails"
 
 RSpec.describe FixtureBot::Rails::SchemaLoader do
   before do
