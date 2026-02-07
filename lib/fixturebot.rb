@@ -16,14 +16,14 @@ module FixtureBot
   class Error < StandardError; end
 
   def self.define(schema, &block)
-    definition = Definition.for(schema)
+    definition = Definition.new(schema)
     definition.instance_eval(&block)
     FixtureSet.new(schema, definition)
   end
 
   def self.define_from_file(schema, fixtures_path)
     content = File.read(fixtures_path)
-    definition = Definition.for(schema)
+    definition = Definition.new(schema)
     definition.instance_eval(content, fixtures_path, 1)
     FixtureSet.new(schema, definition)
   end
