@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in fixture_bot.gemspec
+# Specify your gem's dependencies in fixturebot.gemspec
 gemspec
 
 gem "irb"

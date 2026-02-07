@@ -11,6 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Define Rails fixtures with a Ruby DSL instead of writing YAML by hand"
   spec.description = "FixtureBot gives you a Ruby DSL that feels like FactoryBot, backed by the speed of Rails fixtures. Define your test data in Ruby and generate standard YAML fixture files."
   spec.homepage = "https://github.com/rubymonolith/fixturebot"
+  spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1.0"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
