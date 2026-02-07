@@ -68,7 +68,7 @@ module FixtureBot
         next if @row.literal_values.key?(col)
         next if foreign_key_values.key?(col)
 
-        context = GeneratorContext.new(
+        context = GeneratorContext.for(
           record_name: @row.name,
           table: @row.table,
           literal_values: @row.literal_values

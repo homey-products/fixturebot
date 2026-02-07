@@ -2,26 +2,16 @@
 
 module FixtureBot
   class GeneratorContext
-    def initialize(record_name:, table:, literal_values: {})
-      @record_name = record_name
-      @table = table
-      @literal_values = literal_values
-    end
+    def self.for(record_name:, table:, literal_values: {})
+      klass = Class.new(self)
 
-    private
+      klass.define_method(:name) { record_name }
 
-    def method_missing(method_name, *args)
-      if @literal_values.key?(method_name)
-        @literal_values[method_name]
-      elsif method_name == :name
-        @record_name
-      else
-        super
+      literal_values.each do |col, val|
+        klass.define_method(col) { val }
       end
-    end
 
-    def respond_to_missing?(method_name, include_private = false)
-      @literal_values.key?(method_name) || method_name == :name || super
+      klass.new
     end
   end
 end
