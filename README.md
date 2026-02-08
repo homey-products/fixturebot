@@ -126,10 +126,10 @@ Fixtures are auto-generated when the helper is loaded, no rake task needed.
 
 ### Rake task
 
-A `fixturebot:generate` rake task is also available if you prefer manual control:
+A `fixturebot:compile` rake task is also available if you prefer manual control:
 
 ```bash
-bundle exec rake fixturebot:generate
+bundle exec rake fixturebot:compile
 ```
 
 ### Configuration
