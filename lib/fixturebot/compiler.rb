@@ -24,7 +24,7 @@ module FixtureBot
       records.each do |record_name, columns|
         hash[record_name.to_s] = columns.transform_keys(&:to_s)
       end
-      YAML.dump(hash)
+      YAML.dump(hash).delete_prefix("---\n")
     end
   end
 end
