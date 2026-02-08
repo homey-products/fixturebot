@@ -19,7 +19,7 @@ RSpec.describe FixtureBot do
 
     let(:result) do
       FixtureBot.define(schema) do
-        user.email { "#{name}@blog.test" }
+        user.email { |fixture| "#{fixture.key}@blog.test" }
 
         user :admin do
           name "Brad"
@@ -54,7 +54,7 @@ RSpec.describe FixtureBot do
       expect(users[:admin][:email]).to eq("brad@blog.test")
 
       expect(users[:reader][:name]).to eq("Alice")
-      expect(users[:reader][:email]).to eq("Alice@blog.test")
+      expect(users[:reader][:email]).to eq("reader@blog.test")
     end
 
     it "produces the expected posts with belongs_to" do
@@ -102,14 +102,14 @@ RSpec.describe FixtureBot do
     end
   end
 
-  describe "generator shadowing" do
+  describe "generators" do
     let(:schema) do
       FixtureBot::Schema.define do
         table :users, singular: :user, columns: [:name, :email]
       end
     end
 
-    it "shadows name with literal column value in generator" do
+    it "accesses column values as methods" do
       result = FixtureBot.define(schema) do
         user.email { "#{name.downcase}@blog.test" }
 
@@ -123,7 +123,7 @@ RSpec.describe FixtureBot do
 
     it "preserves explicit nil over generator" do
       result = FixtureBot.define(schema) do
-        user.email { "#{name}@blog.test" }
+        user.email { |fixture| "#{fixture.key}@blog.test" }
 
         user :admin do
           name "Brad"
@@ -134,15 +134,16 @@ RSpec.describe FixtureBot do
       expect(result.tables[:users][:admin][:email]).to be_nil
     end
 
-    it "uses record_name as default name" do
+    it "receives a fixture object as block parameter" do
       result = FixtureBot.define(schema) do
-        user.email { "#{name}@blog.test" }
+        user.email { |fixture| "#{fixture.key}@blog.test" }
 
         user :alice
       end
 
       expect(result.tables[:users][:alice][:email]).to eq("alice@blog.test")
     end
+
   end
 
   describe "unknown method errors" do

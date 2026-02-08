@@ -117,11 +117,9 @@ module FixtureBot
           next if @row.literal_values.key?(col)
           next if foreign_key_values.key?(col)
 
-          context = Default::Context.new(
-            record_name: @row.name,
-            literal_values: @row.literal_values
-          )
-          result[col] = context.instance_eval(&block)
+          fixture = Default::Fixture.new(key: @row.name)
+          context = Default::Context.new(literal_values: @row.literal_values)
+          result[col] = context.instance_exec(fixture, &block)
         end
       end
     end
