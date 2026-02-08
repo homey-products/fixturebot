@@ -48,13 +48,10 @@ FixtureBot.define do
     tags :ruby, :rails        # creates rows in posts_tags
   end
 
-  tag :ruby do
-    name "Ruby"
-  end
+  tag.name { |fixture| fixture.key.to_s.capitalize }
 
-  tag :rails do
-    name "Rails"
-  end
+  tag :ruby                   # name: "Ruby"
+  tag :rails                  # name: "Rails"
 end
 ```
 
@@ -179,6 +176,18 @@ end
 ```
 
 The generator block receives a `fixture` object as a block parameter with access to `fixture.key` (the record's symbol name). Bare methods inside the block refer to column values set on the record.
+
+When a generator covers all the columns you need, records don't need a block at all:
+
+```ruby
+FixtureBot.define do
+  tag.name { |fixture| fixture.key.to_s.capitalize }
+
+  tag :ruby     # name: "Ruby"
+  tag :rails    # name: "Rails"
+  tag :testing  # name: "Testing"
+end
+```
 
 A literal value shadows the generator. An explicit `nil` also shadows it:
 

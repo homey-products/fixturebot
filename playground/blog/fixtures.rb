@@ -14,17 +14,11 @@ FixtureBot.define do
     name "Charlie"
   end
 
-  tag :ruby do
-    name "Ruby"
-  end
+  tag.name { |fixture| fixture.key.to_s.capitalize }
 
-  tag :rails do
-    name "Rails"
-  end
-
-  tag :testing do
-    name "Testing"
-  end
+  tag :ruby
+  tag :rails
+  tag :testing
 
   post :hello_world do
     title "Hello World"
