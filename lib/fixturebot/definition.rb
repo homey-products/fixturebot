@@ -30,7 +30,7 @@ module FixtureBot
     end
 
     def add_row(table, record_name, block)
-      row_dsl = Row::Definition.new(table, @schema)
+      row_dsl = RowDefinition.new(table, @schema)
       row_dsl.instance_eval(&block) if block
       @rows << Row.new(
         table: table.name,

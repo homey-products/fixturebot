@@ -11,7 +11,7 @@ module FixtureBot
       schema.join_tables.each_key { |name| @tables[name] = {} }
 
       definition.rows.each do |row|
-        builder = Row::Builder.new(
+        builder = RowBuilder.new(
           row: row,
           table: schema.tables[row.table],
           defaults: definition.defaults[row.table],
