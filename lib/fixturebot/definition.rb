@@ -20,7 +20,7 @@ module FixtureBot
     def define_table_method(table)
       define_singleton_method(table.singular_name) do |record_name = nil, &block|
         if record_name.nil? && block.nil?
-          Default.new(table, @defaults[table.name])
+          Default::Definition.new(table, @defaults[table.name])
         elsif record_name
           add_row(table, record_name, block)
         else
@@ -30,14 +30,14 @@ module FixtureBot
     end
 
     def add_row(table, record_name, block)
-      row_dsl = RowDefinition.new(table, @schema)
-      row_dsl.instance_eval(&block) if block
-      @rows << Row.new(
+      row_def = Row::Definition.new(table, @schema)
+      row_def.instance_eval(&block) if block
+      @rows << Row::Declaration.new(
         table: table.name,
         name: record_name,
-        literal_values: row_dsl.literal_values,
-        association_refs: row_dsl.association_refs,
-        tag_refs: row_dsl.tag_refs
+        literal_values: row_def.literal_values,
+        association_refs: row_def.association_refs,
+        tag_refs: row_def.tag_refs
       )
     end
   end
