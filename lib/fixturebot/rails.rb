@@ -7,7 +7,7 @@ require_relative "rails/railtie" if defined?(::Rails::Railtie)
 
 module FixtureBot
   module Rails
-    def self.generate(fixtures_file: nil, output_dir: nil)
+    def self.compile(fixtures_file: nil, output_dir: nil)
       fixtures_file = resolve_fixtures_file(fixtures_file)
       return unless fixtures_file && File.exist?(fixtures_file)
 
@@ -15,7 +15,7 @@ module FixtureBot
 
       schema = SchemaLoader.load
       fixture_set = FixtureBot.define_from_file(schema, fixtures_file)
-      YamlDumper.new(fixture_set).dump(output_dir)
+      Compiler.new(fixture_set).compile(output_dir)
     end
 
     def self.resolve_fixtures_file(explicit)

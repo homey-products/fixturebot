@@ -2,4 +2,4 @@
 
 require "fixturebot/rails"
 
-FixtureBot::Rails.generate
+FixtureBot::Rails.compile

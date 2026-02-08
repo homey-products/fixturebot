@@ -3,7 +3,7 @@
 require "tmpdir"
 require "yaml"
 
-RSpec.describe FixtureBot::YamlDumper do
+RSpec.describe FixtureBot::Compiler do
   let(:schema) do
     FixtureBot::Schema.define do
       table :users, singular: :user, columns: [:name, :email]
@@ -27,11 +27,11 @@ RSpec.describe FixtureBot::YamlDumper do
     end
   end
 
-  let(:dumper) { described_class.new(fixture_set) }
+  let(:compiler) { described_class.new(fixture_set) }
 
-  describe "#dump_table" do
+  describe "#compile_table" do
     it "produces valid YAML with string keys" do
-      yaml = dumper.dump_table(:users)
+      yaml = compiler.compile_table(:users)
       parsed = YAML.safe_load(yaml)
 
       expect(parsed).to have_key("admin")
@@ -41,11 +41,11 @@ RSpec.describe FixtureBot::YamlDumper do
     end
   end
 
-  describe "#dump" do
+  describe "#compile" do
     it "writes per-table YAML files to the output directory" do
       dir = Dir.mktmpdir
       begin
-        dumper.dump(dir)
+        compiler.compile(dir)
 
         expect(File.exist?(File.join(dir, "users.yml"))).to be true
         expect(File.exist?(File.join(dir, "posts.yml"))).to be true
@@ -72,7 +72,7 @@ RSpec.describe FixtureBot::YamlDumper do
           end
         end
 
-        described_class.new(fs).dump(dir)
+        described_class.new(fs).compile(dir)
 
         expect(File.exist?(File.join(dir, "users.yml"))).to be true
         expect(File.exist?(File.join(dir, "posts.yml"))).to be false

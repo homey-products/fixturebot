@@ -3,7 +3,7 @@
 require "fixturebot/rails"
 require "tmpdir"
 
-RSpec.describe FixtureBot::Rails, ".generate" do
+RSpec.describe FixtureBot::Rails, ".compile" do
   before do
     ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
 
@@ -29,7 +29,7 @@ RSpec.describe FixtureBot::Rails, ".generate" do
     ActiveRecord::Base.connection_pool.disconnect!
   end
 
-  it "generates YAML fixture files from a DSL file" do
+  it "compiles YAML fixture files from a DSL file" do
     Dir.mktmpdir do |tmpdir|
       fixtures_file = File.join(tmpdir, "fixtures.rb")
       output_dir = File.join(tmpdir, "fixtures")
@@ -54,7 +54,7 @@ RSpec.describe FixtureBot::Rails, ".generate" do
         end
       RUBY
 
-      described_class.generate(fixtures_file: fixtures_file, output_dir: output_dir)
+      described_class.compile(fixtures_file: fixtures_file, output_dir: output_dir)
 
       users_yaml = YAML.load_file(File.join(output_dir, "users.yml"))
       expect(users_yaml.keys).to contain_exactly("alice", "bob")
@@ -82,7 +82,7 @@ RSpec.describe FixtureBot::Rails, ".generate" do
         end
       RUBY
 
-      described_class.generate(fixtures_file: fixtures_file, output_dir: output_dir)
+      described_class.compile(fixtures_file: fixtures_file, output_dir: output_dir)
 
       expect(File.exist?(File.join(output_dir, "users.yml"))).to be true
       expect(File.exist?(File.join(output_dir, "posts.yml"))).to be false
@@ -93,7 +93,7 @@ RSpec.describe FixtureBot::Rails, ".generate" do
     Dir.mktmpdir do |tmpdir|
       output_dir = File.join(tmpdir, "fixtures")
 
-      described_class.generate(
+      described_class.compile(
         fixtures_file: File.join(tmpdir, "nonexistent.rb"),
         output_dir: output_dir
       )

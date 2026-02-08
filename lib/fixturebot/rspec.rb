@@ -4,6 +4,6 @@ require "fixturebot/rails"
 
 RSpec.configure do |config|
   config.before(:suite) do
-    FixtureBot::Rails.generate
+    FixtureBot::Rails.compile
   end
 end

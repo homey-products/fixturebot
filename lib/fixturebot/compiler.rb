@@ -4,21 +4,21 @@ require "yaml"
 require "fileutils"
 
 module FixtureBot
-  class YamlDumper
+  class Compiler
     def initialize(fixture_set)
       @fixture_set = fixture_set
     end
 
-    def dump(output_dir)
+    def compile(output_dir)
       FileUtils.mkdir_p(output_dir)
       @fixture_set.tables.each do |table_name, records|
         next if records.empty?
         path = File.join(output_dir, "#{table_name}.yml")
-        File.write(path, dump_table(table_name))
+        File.write(path, compile_table(table_name))
       end
     end
 
-    def dump_table(table_name)
+    def compile_table(table_name)
       records = @fixture_set.tables[table_name]
       hash = {}
       records.each do |record_name, columns|

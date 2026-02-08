@@ -7,9 +7,9 @@ module FixtureBot
 
       rake_tasks do
         namespace :fixturebot do
-          desc "Generate YAML fixture files from FixtureBot DSL"
-          task generate: :environment do
-            FixtureBot::Rails.generate
+          desc "Compile FixtureBot DSL to YAML fixture files"
+          task compile: :environment do
+            FixtureBot::Rails.compile
           end
         end
       end
