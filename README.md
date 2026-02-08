@@ -273,6 +273,18 @@ end
 
 ## Prior art
 
+### [Rails fixtures](https://guides.rubyonrails.org/testing.html#the-low-down-on-fixtures)
+
+Rails fixtures are YAML files that get loaded into the database once before your test suite runs. Each test wraps in a transaction and rolls back, so the data is always clean and tests are fast. This is the approach FixtureBot builds on.
+
+The problem is writing YAML by hand. Foreign keys are magic strings (`author: brad`), there's no way to DRY up repeated columns, and large fixture files are hard to read. FixtureBot gives you a Ruby DSL that compiles down to the same YAML, so you keep the speed of fixtures without the pain of maintaining them.
+
+### [FactoryBot](https://github.com/thoughtbot/factory_bot)
+
+FactoryBot creates records on the fly inside each test. You call `create(:user)` and it inserts a row. This makes tests self-contained and easy to read, but it's slow. Every test that needs data pays the cost of inserting records, and complex object graphs lead to cascading `create` calls.
+
+FixtureBot borrows the DSL feel of FactoryBot (named records, associations by symbol, default generators) but compiles to fixtures instead of inserting at runtime. You get the ergonomics of factories with the speed of fixtures.
+
 ### [Oaken](https://github.com/kaspth/oaken)
 
 Oaken and FixtureBot share the same motivation: replace hand-written YAML fixtures with a Ruby DSL. They take very different approaches.
@@ -281,13 +293,14 @@ Oaken and FixtureBot share the same motivation: replace hand-written YAML fixtur
 
 **FixtureBot is more opinionated.** One fixture file, one data set, compiled to plain YAML and checked into git. At test time, FixtureBot is out of the picture entirely. Rails loads the YAML fixtures once and wraps each test in a transaction as usual. No runtime dependency, no per-test seeding, no seed file organization to manage.
 
-| | FixtureBot | Oaken |
-|---|---|---|
-| **Output** | YAML files checked into git | Records inserted at test time |
-| **Runtime dependency** | None. Rails loads YAML | Required to seed data |
-| **Data set** | One set, loaded once | Per-test sets via seed files |
-| **Associations** | Symbolic refs resolved at compile time | Ruby object refs at runtime |
-| **Stable IDs** | Deterministic via `Zlib.crc32` | Database-assigned |
+| | FixtureBot | Rails fixtures | FactoryBot | Oaken |
+|---|---|---|---|---|
+| **Define data in** | Ruby DSL | YAML | Ruby DSL | Ruby scripts |
+| **Output** | YAML files in git | YAML files in git | Database rows per test | Database rows at boot |
+| **Runtime dependency** | None | None | Required per test | Required at boot |
+| **Data set** | One set, loaded once | One set, loaded once | Built per test | Per-test via seed files |
+| **Speed** | Fast (fixtures) | Fast (fixtures) | Slow (inserts per test) | Varies |
+| **Stable IDs** | Deterministic | Deterministic | Database-assigned | Database-assigned |
 
 ## Development
 
