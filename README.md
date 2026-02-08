@@ -24,8 +24,8 @@ More background at [BeautifulRuby.com](https://beautifulruby.com/code/fixturebot
 # spec/fixtures.rb
 FixtureBot.define do
   # Generators fill in required columns so you don't have to repeat yourself.
-  # This one gives every user an email unless the record overrides it.
-  user.email { "#{name}@example.com" }
+  # |fixture| gives you the fixture key; bare methods give column values.
+  user.email { |fixture| "#{fixture.key}@example.com" }
 
   user :brad do
     name "Brad"
@@ -33,7 +33,7 @@ FixtureBot.define do
   end
 
   user :alice do
-    name "Alice"              # email filled in by generator: "Alice@example.com"
+    name "Alice"              # email filled in by generator: "alice@example.com"
   end
 
   user :deactivated do
@@ -161,7 +161,7 @@ Records without a block get an auto-generated ID and any generator defaults:
 
 ```ruby
 FixtureBot.define do
-  user.email { "#{name}@example.com" }
+  user.email { |fixture| "#{fixture.key}@example.com" }
 
   user :alice
   # => { id: <stable_id>, email: "alice@example.com" }
@@ -174,17 +174,17 @@ Generators set default column values. They run for each record that doesn't expl
 
 ```ruby
 FixtureBot.define do
-  user.email { "#{name}@example.com" }
+  user.email { |fixture| "#{fixture.key}@example.com" }
 end
 ```
 
-The generator block has access to `name`, which returns the record's literal `name` column if set, or the record name (e.g. `:brad`) as a fallback.
+The generator block receives a `fixture` object as a block parameter with access to `fixture.key` (the record's symbol name). Bare methods inside the block refer to column values set on the record.
 
 A literal value shadows the generator. An explicit `nil` also shadows it:
 
 ```ruby
 FixtureBot.define do
-  user.email { "#{name}@example.com" }
+  user.email { |fixture| "#{fixture.key}@example.com" }
 
   user :brad do
     name "Brad"
@@ -193,7 +193,7 @@ FixtureBot.define do
 
   user :alice do
     name "Alice"
-    # no email set, generator produces "Alice@example.com"
+    # no email set, generator produces "alice@example.com"
   end
 
   user :deactivated do

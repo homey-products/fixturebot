@@ -1,12 +1,16 @@
 FixtureBot.define do
   # Define your fixtures here. Example:
   #
+  #   # Generator: fills in email for every user that doesn't set one.
+  #   # |fixture| gives you the fixture key; bare methods give column values.
+  #   user.email { |fixture| "#{fixture.key}@example.com" }
+  #
   #   user :alice do
   #     name "Alice"
-  #     email "alice@example.com"
   #   end
   #
   #   user :bob do
   #     name "Bob"
+  #     email "bob@hey.com"  # overrides the generator
   #   end
 end

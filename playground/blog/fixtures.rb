@@ -1,5 +1,5 @@
 FixtureBot.define do
-  user.email { "#{name}@blog.test" }
+  user.email { |fixture| "#{fixture.key}@blog.test" }
 
   user :brad do
     name "Brad"
