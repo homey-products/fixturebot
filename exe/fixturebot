@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-begin
+require "fixturebot"
+
+if defined?(::Rails::Application)
   require "fixturebot/rails"
   FixtureBot::Rails::CLI.start(ARGV)
-rescue LoadError
-  require "fixturebot"
-  require "fixturebot/cli"
+else
   FixtureBot::CLI.start(ARGV)
 end
