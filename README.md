@@ -271,6 +271,24 @@ FixtureBot::Schema.define do
 end
 ```
 
+## Prior art
+
+### [Oaken](https://github.com/kaspth/oaken)
+
+Oaken and FixtureBot share the same motivation: replace hand-written YAML fixtures with a Ruby DSL. They take very different approaches.
+
+**Oaken inserts records into the database** at runtime using `ActiveRecord::Base#create!`. It also supports loading different seed files per test case (`seed "cases/pagination"`), which means your data set can vary across tests. This flexibility comes at a cost: you lose the "load once, wrap every test in a transaction" speed advantage that makes Rails fixtures fast. It's closer to factories in that regard, with more structure around organizing seed scripts.
+
+**FixtureBot is more opinionated.** One fixture file, one data set, compiled to plain YAML and checked into git. At test time, FixtureBot is out of the picture entirely. Rails loads the YAML fixtures once and wraps each test in a transaction as usual. No runtime dependency, no per-test seeding, no seed file organization to manage.
+
+| | FixtureBot | Oaken |
+|---|---|---|
+| **Output** | YAML files checked into git | Records inserted at test time |
+| **Runtime dependency** | None. Rails loads YAML | Required to seed data |
+| **Data set** | One set, loaded once | Per-test sets via seed files |
+| **Associations** | Symbolic refs resolved at compile time | Ruby object refs at runtime |
+| **Stable IDs** | Deterministic via `Zlib.crc32` | Database-assigned |
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt.
