@@ -83,21 +83,21 @@ RSpec.describe FixtureBot do
     end
   end
 
-  describe FixtureBot::StableId do
+  describe FixtureBot::Key do
     it "generates deterministic IDs" do
-      id1 = FixtureBot::StableId.generate(:users, :admin)
-      id2 = FixtureBot::StableId.generate(:users, :admin)
+      id1 = FixtureBot::Key.generate(:users, :admin)
+      id2 = FixtureBot::Key.generate(:users, :admin)
       expect(id1).to eq(id2)
     end
 
     it "generates positive integers" do
-      id = FixtureBot::StableId.generate(:users, :admin)
+      id = FixtureBot::Key.generate(:users, :admin)
       expect(id).to be > 0
     end
 
     it "generates different IDs for different records" do
-      id1 = FixtureBot::StableId.generate(:users, :admin)
-      id2 = FixtureBot::StableId.generate(:users, :reader)
+      id1 = FixtureBot::Key.generate(:users, :admin)
+      id2 = FixtureBot::Key.generate(:users, :reader)
       expect(id1).not_to eq(id2)
     end
   end

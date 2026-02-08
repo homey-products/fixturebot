@@ -2,47 +2,43 @@
 
 module FixtureBot
   class Definition
-    attr_reader :generators, :rows
+    attr_reader :defaults, :rows
 
     def initialize(schema)
       @schema = schema
-      @generators = {}
+      @defaults = {}
       @rows = []
-      @singular_to_table = {}
 
-      schema.tables.each_value do |table_def|
-        @generators[table_def.name] = {}
-        @singular_to_table[table_def.singular_name] = table_def
+      schema.tables.each_value do |table|
+        @defaults[table.name] = {}
+        define_table_method(table)
       end
     end
 
     private
 
-    def method_missing(method_name, *args, &block)
-      table_def = @singular_to_table[method_name]
-      return super unless table_def
-
-      record_name = args.first
-
-      if record_name.nil? && block.nil?
-        GeneratorProxy.new(table_def, @generators[table_def.name])
-      elsif record_name
-        row_dsl = RowDSL.new(table_def, @schema)
-        row_dsl.instance_eval(&block) if block
-        @rows << Row.new(
-          table: table_def.name,
-          name: record_name,
-          literal_values: row_dsl.literal_values,
-          association_refs: row_dsl.association_refs,
-          tag_refs: row_dsl.tag_refs
-        )
-      else
-        raise ArgumentError, "#{table_def.singular_name} requires a record name or no arguments"
+    def define_table_method(table)
+      define_singleton_method(table.singular_name) do |record_name = nil, &block|
+        if record_name.nil? && block.nil?
+          Default.new(table, @defaults[table.name])
+        elsif record_name
+          add_row(table, record_name, block)
+        else
+          raise ArgumentError, "#{table.singular_name} requires a record name or no arguments"
+        end
       end
     end
 
-    def respond_to_missing?(method_name, include_private = false)
-      @singular_to_table.key?(method_name) || super
+    def add_row(table, record_name, block)
+      row_dsl = RowDefinition.new(table, @schema)
+      row_dsl.instance_eval(&block) if block
+      @rows << Row.new(
+        table: table.name,
+        name: record_name,
+        literal_values: row_dsl.literal_values,
+        association_refs: row_dsl.association_refs,
+        tag_refs: row_dsl.tag_refs
+      )
     end
   end
 end

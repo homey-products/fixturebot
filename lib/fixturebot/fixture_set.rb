@@ -11,10 +11,10 @@ module FixtureBot
       schema.join_tables.each_key { |name| @tables[name] = {} }
 
       definition.rows.each do |row|
-        builder = RecordBuilder.new(
+        builder = RowBuilder.new(
           row: row,
-          table_def: schema.tables[row.table],
-          generators: definition.generators[row.table],
+          table: schema.tables[row.table],
+          defaults: definition.defaults[row.table],
           join_tables: schema.join_tables
         )
 

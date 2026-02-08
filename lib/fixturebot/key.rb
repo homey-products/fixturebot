@@ -3,7 +3,7 @@
 require "zlib"
 
 module FixtureBot
-  module StableId
+  module Key
     def self.generate(table_name, record_name)
       Zlib.crc32("#{table_name}:#{record_name}") & 0x7FFFFFFF
     end
