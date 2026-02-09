@@ -3,7 +3,7 @@
 require_relative "lib/fixturebot/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "fixturebot"
+  spec.name = "fixturebot-rails"
   spec.version = FixtureBot::VERSION
   spec.authors = ["Brad Gessler"]
   spec.email = ["bradgessler@gmail.com"]

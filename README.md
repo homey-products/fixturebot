@@ -82,7 +82,7 @@ end
 Add to your Gemfile:
 
 ```ruby
-gem "fixturebot"
+gem "fixturebot-rails"
 ```
 
 ### Rails generator

@@ -29,7 +29,7 @@ RSpec.describe "Rails integration", :integration do
     # Add fixturebot to Gemfile
     gemfile = File.join(@app_dir, "Gemfile")
     File.open(gemfile, "a") do |f|
-      f.puts %(gem "fixturebot", path: "#{GEM_ROOT}", require: "fixturebot/rails")
+      f.puts %(gem "fixturebot-rails", path: "#{GEM_ROOT}", require: "fixturebot/rails")
     end
 
     # Bundle install
