@@ -9,8 +9,10 @@ require "zlib"
 RSpec.describe "Rails integration", :integration do
   GEM_ROOT = File.expand_path("../..", __dir__)
 
-  def run_cmd!(cmd, chdir:)
-    output, status = Bundler.with_unbundled_env do
+  def run_cmd!(cmd, chdir:, unbundled: true)
+    output, status = if unbundled
+      Bundler.with_unbundled_env { Open3.capture2e(cmd, chdir: chdir) }
+    else
       Open3.capture2e(cmd, chdir: chdir)
     end
     unless status.success?
@@ -23,8 +25,8 @@ RSpec.describe "Rails integration", :integration do
     @tmpdir = Dir.mktmpdir("fixturebot_integration")
     @app_dir = File.join(@tmpdir, "dummy_app")
 
-    # Create a new minimal Rails app
-    run_cmd!("rails new dummy_app --minimal --skip-git --skip-docker --skip-bundle", chdir: @tmpdir)
+    # Create a new minimal Rails app (runs within parent bundle to find rails CLI)
+    run_cmd!("rails new dummy_app --minimal --skip-git --skip-docker --skip-bundle", chdir: @tmpdir, unbundled: false)
 
     # Add fixturebot to Gemfile
     gemfile = File.join(@app_dir, "Gemfile")
