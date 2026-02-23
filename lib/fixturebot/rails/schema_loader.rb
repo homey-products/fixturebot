@@ -163,6 +163,11 @@ module FixtureBot
       end
 
       def singularize(word)
+        if defined?(ApplicationRecord)
+          # Try to find a model that uses this table to get accurate singular form
+          model = ApplicationRecord.descendants.find { |k| k.table_name == word.to_s && !k.abstract_class? }
+          return model.model_name.singular.to_sym if model
+        end
         ActiveSupport::Inflector.singularize(word).to_sym
       end
 
