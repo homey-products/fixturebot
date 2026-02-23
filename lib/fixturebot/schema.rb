@@ -10,17 +10,22 @@ module FixtureBot
     BelongsTo = Data.define(:name, :table, :foreign_key)
     JoinTable = Data.define(:name, :left_table, :right_table, :left_foreign_key, :right_foreign_key)
 
-    attr_reader :tables, :join_tables, :uuid_pk_tables
+    attr_reader :tables, :join_tables, :class_name_map, :uuid_pk_tables
 
     def initialize
       @tables = {}
       @join_tables = {}
+      @class_name_map = {}
       @uuid_pk_tables = Set.new
     end
 
     def add_table(table)
       @tables[table.name] = table
       @uuid_pk_tables.add(table.name) if table.uuid_pk
+    end
+
+    def class_name_map=(map)
+      @class_name_map = map
     end
 
     def add_join_table(join_table)

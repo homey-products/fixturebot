@@ -16,6 +16,7 @@ module FixtureBot
           table: schema.tables[row.table],
           defaults: definition.defaults[row.table],
           join_tables: schema.join_tables,
+          class_name_map: schema.class_name_map,
           uuid_pk_tables: schema.uuid_pk_tables
         )
 

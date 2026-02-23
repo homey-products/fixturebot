@@ -13,7 +13,7 @@ module FixtureBot
 
         schema = SchemaLoader.load
         fixture_set = FixtureBot.define_from_file(schema, fixtures_path)
-        Compiler.new(fixture_set).compile(output_dir)
+        Compiler.new(fixture_set, schema: schema).compile(output_dir)
 
         say "Compiled fixtures to #{output_dir}/"
         fixture_set.tables.each do |table_name, records|

@@ -51,11 +51,12 @@ module FixtureBot
     end
 
     class Builder
-      def initialize(row:, table:, defaults:, join_tables:, uuid_pk_tables: Set.new)
+      def initialize(row:, table:, defaults:, join_tables:, class_name_map: {}, uuid_pk_tables: Set.new)
         @row = row
         @table = table
         @defaults = defaults
         @join_tables = join_tables
+        @class_name_map = class_name_map
         @uuid_pk_tables = uuid_pk_tables
       end
 
