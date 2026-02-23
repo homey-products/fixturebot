@@ -146,6 +146,66 @@ RSpec.describe FixtureBot do
 
   end
 
+  describe ".define_from_files" do
+    let(:schema) do
+      FixtureBot::Schema.define do
+        table :users, singular: :user, columns: [:name, :email]
+        table :posts, singular: :post, columns: [:title, :body, :author_id] do
+          belongs_to :author, table: :users
+        end
+      end
+    end
+
+    it "loads multiple files into a single fixture set" do
+      Dir.mktmpdir do |tmpdir|
+        File.write(File.join(tmpdir, "users.rb"), <<~RUBY)
+          FixtureBot.define do
+            user :alice do
+              name "Alice"
+              email "alice@test.com"
+            end
+          end
+        RUBY
+
+        File.write(File.join(tmpdir, "posts.rb"), <<~RUBY)
+          FixtureBot.define do
+            post :hello do
+              title "Hello"
+              body "World"
+              author :alice
+            end
+          end
+        RUBY
+
+        result = FixtureBot.define_from_files(
+          schema,
+          File.join(tmpdir, "users.rb"),
+          File.join(tmpdir, "posts.rb")
+        )
+
+        expect(result.tables[:users][:alice][:name]).to eq("Alice")
+        expect(result.tables[:posts][:hello][:title]).to eq("Hello")
+        expect(result.tables[:posts][:hello][:author_id]).to eq(result.tables[:users][:alice][:id])
+      end
+    end
+
+    it "delegates from define_from_file for backwards compatibility" do
+      Dir.mktmpdir do |tmpdir|
+        File.write(File.join(tmpdir, "fixtures.rb"), <<~RUBY)
+          FixtureBot.define do
+            user :alice do
+              name "Alice"
+              email "alice@test.com"
+            end
+          end
+        RUBY
+
+        result = FixtureBot.define_from_file(schema, File.join(tmpdir, "fixtures.rb"))
+        expect(result.tables[:users][:alice][:name]).to eq("Alice")
+      end
+    end
+  end
+
   describe "unknown method errors" do
     let(:schema) do
       FixtureBot::Schema.define do
