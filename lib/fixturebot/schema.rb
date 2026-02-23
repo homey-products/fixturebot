@@ -7,7 +7,11 @@ module FixtureBot
         super
       end
     end
-    BelongsTo = Data.define(:name, :table, :foreign_key)
+    BelongsTo = Data.define(:name, :table, :foreign_key, :polymorphic, :type_column) do
+      def initialize(name:, table:, foreign_key:, polymorphic: false, type_column: nil)
+        super
+      end
+    end
     JoinTable = Data.define(:name, :left_table, :right_table, :left_foreign_key, :right_foreign_key)
 
     attr_reader :tables, :join_tables, :class_name_map, :uuid_pk_tables
@@ -76,9 +80,16 @@ module FixtureBot
         @associations = associations
       end
 
-      def belongs_to(name, table:)
+      def belongs_to(name, table:, polymorphic: false)
         foreign_key = :"#{name}_id"
-        @associations << BelongsTo.new(name: name, table: table, foreign_key: foreign_key)
+        type_column = polymorphic ? :"#{name}_type" : nil
+        @associations << BelongsTo.new(
+          name: name,
+          table: table,
+          foreign_key: foreign_key,
+          polymorphic: polymorphic,
+          type_column: type_column
+        )
       end
     end
   end
