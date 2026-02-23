@@ -48,7 +48,7 @@ module FixtureBot
           .reject { |c| framework_column?(c.name) }
           .map { |c| c.name.to_sym }
 
-        associations = @connection.foreign_keys(name).map do |fk|
+        fk_associations = @connection.foreign_keys(name).map do |fk|
           Schema::BelongsTo.new(
             name: association_name(fk.column),
             table: fk.to_table.to_sym,
@@ -56,13 +56,35 @@ module FixtureBot
           )
         end
 
+        poly_associations = detect_polymorphic_associations(name, columns, fk_associations)
+
         Schema::Table.new(
           name: name.to_sym,
           singular_name: singularize(name),
           columns: columns,
-          belongs_to_associations: associations,
+          belongs_to_associations: fk_associations + poly_associations,
           uuid_pk: uuid_pk
         )
+      end
+
+      def detect_polymorphic_associations(table_name, columns, existing_associations)
+        existing_fk_columns = existing_associations.map(&:foreign_key).to_set
+
+        type_columns = columns.select { |c| c.to_s.end_with?("_type") }
+        type_columns.filter_map do |type_col|
+          id_col = :"#{type_col.to_s.sub(/_type$/, '_id')}"
+          next unless columns.include?(id_col)
+          next if existing_fk_columns.include?(id_col)
+
+          assoc_name = type_col.to_s.sub(/_type$/, "").to_sym
+          Schema::BelongsTo.new(
+            name: assoc_name,
+            table: nil, # resolved at row-build time from the tuple
+            foreign_key: id_col,
+            polymorphic: true,
+            type_column: type_col
+          )
+        end
       end
 
       def build_class_name_map
