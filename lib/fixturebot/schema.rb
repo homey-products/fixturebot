@@ -2,19 +2,25 @@
 
 module FixtureBot
   class Schema
-    Table = Data.define(:name, :singular_name, :columns, :belongs_to_associations)
+    Table = Data.define(:name, :singular_name, :columns, :belongs_to_associations, :uuid_pk) do
+      def initialize(name:, singular_name:, columns:, belongs_to_associations:, uuid_pk: false)
+        super
+      end
+    end
     BelongsTo = Data.define(:name, :table, :foreign_key)
     JoinTable = Data.define(:name, :left_table, :right_table, :left_foreign_key, :right_foreign_key)
 
-    attr_reader :tables, :join_tables
+    attr_reader :tables, :join_tables, :uuid_pk_tables
 
     def initialize
       @tables = {}
       @join_tables = {}
+      @uuid_pk_tables = Set.new
     end
 
     def add_table(table)
       @tables[table.name] = table
+      @uuid_pk_tables.add(table.name) if table.uuid_pk
     end
 
     def add_join_table(join_table)
