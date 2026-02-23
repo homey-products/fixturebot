@@ -38,7 +38,11 @@ module FixtureBot
       end
 
       def build_table(name)
-        columns = @connection.columns(name)
+        all_columns = @connection.columns(name)
+        pk_column = all_columns.find { |c| c.name == "id" }
+        uuid_pk = pk_column&.sql_type == "uuid"
+
+        columns = all_columns
           .reject { |c| framework_column?(c.name) }
           .map { |c| c.name.to_sym }
 
@@ -54,7 +58,8 @@ module FixtureBot
           name: name.to_sym,
           singular_name: singularize(name),
           columns: columns,
-          belongs_to_associations: associations
+          belongs_to_associations: associations,
+          uuid_pk: uuid_pk
         )
       end
 
