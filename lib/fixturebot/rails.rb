@@ -2,7 +2,6 @@
 
 require "fixturebot"
 require_relative "rails/schema_loader"
-require_relative "rails/cli"
 require_relative "rails/railtie" if defined?(::Rails::Railtie)
 
 module FixtureBot

@@ -8,7 +8,6 @@ require_relative "fixturebot/row"
 require_relative "fixturebot/definition"
 require_relative "fixturebot/fixture_set"
 require_relative "fixturebot/compiler"
-require_relative "fixturebot/cli"
 
 module FixtureBot
   class Error < StandardError; end
