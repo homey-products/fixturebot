@@ -24,6 +24,8 @@ module FixtureBot
         schema = Schema.new
         table_names = user_table_names
 
+        eager_load_models!
+
         join_table_names = detect_join_tables(table_names)
 
         (table_names - join_table_names).each do |name|
@@ -88,17 +90,18 @@ module FixtureBot
         end
       end
 
+      def eager_load_models!
+        return unless defined?(::Rails) && ::Rails.application
+
+        begin
+          ::Rails.application.eager_load!
+        rescue => e
+          ::Rails.logger&.warn("FixtureBot: eager_load! failed (#{e.class}: #{e.message}), using already-loaded models")
+        end
+      end
+
       def build_class_name_map
         return {} unless defined?(ApplicationRecord)
-
-        # Eager-load models so descendants are populated.
-        if defined?(::Rails) && ::Rails.application
-          begin
-            ::Rails.application.eager_load!
-          rescue => e
-            ::Rails.logger&.warn("FixtureBot: eager_load! failed (#{e.class}: #{e.message}), using already-loaded models")
-          end
-        end
 
         map = {}
         ApplicationRecord.descendants.each do |klass|
@@ -164,6 +167,13 @@ module FixtureBot
       end
 
       def singularize(word)
+        if defined?(ApplicationRecord)
+          # Prefer the base class to ensure deterministic results with STI
+          model = ApplicationRecord.descendants
+            .select { |k| k.table_name == word.to_s && !k.abstract_class? }
+            .min_by { |k| k.ancestors.size }
+          return model.model_name.singular.to_sym if model
+        end
         ActiveSupport::Inflector.singularize(word).to_sym
       end
 
