@@ -2,19 +2,24 @@
 
 module FixtureBot
   module Row
-    Declaration = Data.define(:table, :name, :literal_values, :association_refs, :tag_refs)
+    Declaration = Data.define(:table, :name, :literal_values, :association_refs, :tag_refs, :explicit_id)
 
     class Definition
-      attr_reader :literal_values, :association_refs, :tag_refs
+      attr_reader :literal_values, :association_refs, :tag_refs, :explicit_id
 
       def initialize(table, schema)
         @literal_values = {}
         @association_refs = {}
         @tag_refs = {}
+        @explicit_id = nil
 
         define_column_methods(table)
         define_association_methods(table)
         define_join_table_methods(table, schema)
+      end
+
+      def id(value)
+        @explicit_id = value
       end
 
       private
@@ -67,7 +72,9 @@ module FixtureBot
       end
 
       def id
-        @id ||= if @table.uuid_pk
+        @id ||= if @row.explicit_id
+          @row.explicit_id
+        elsif @table.uuid_pk
           Key.generate_uuid(@row.table, @row.name)
         else
           Key.generate(@row.table, @row.name)

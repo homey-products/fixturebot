@@ -206,6 +206,35 @@ RSpec.describe FixtureBot do
     end
   end
 
+  describe "explicit IDs" do
+    let(:schema) do
+      FixtureBot::Schema.define do
+        table :users, singular: :user, columns: [:name, :email]
+      end
+    end
+
+    it "uses the explicit ID instead of generating one" do
+      result = FixtureBot.define(schema) do
+        user :admin do
+          id 1
+          name "Admin"
+        end
+      end
+
+      expect(result.tables[:users][:admin][:id]).to eq(1)
+    end
+
+    it "falls back to generated ID when no explicit ID is set" do
+      result = FixtureBot.define(schema) do
+        user :admin do
+          name "Admin"
+        end
+      end
+
+      expect(result.tables[:users][:admin][:id]).to eq(FixtureBot::Key.generate(:users, :admin))
+    end
+  end
+
   describe "unknown method errors" do
     let(:schema) do
       FixtureBot::Schema.define do
