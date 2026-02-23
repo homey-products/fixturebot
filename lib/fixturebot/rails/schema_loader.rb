@@ -34,6 +34,8 @@ module FixtureBot
           schema.add_join_table(build_join_table(name))
         end
 
+        schema.class_name_map = build_class_name_map
+
         schema
       end
 
@@ -61,6 +63,43 @@ module FixtureBot
           belongs_to_associations: associations,
           uuid_pk: uuid_pk
         )
+      end
+
+      def build_class_name_map
+        return {} unless defined?(ApplicationRecord)
+
+        # Eager-load models so descendants are populated.
+        if defined?(::Rails) && ::Rails.application
+          begin
+            ::Rails.application.eager_load!
+          rescue => e
+            ::Rails.logger&.warn("FixtureBot: eager_load! failed (#{e.class}: #{e.message}), using already-loaded models")
+          end
+        end
+
+        map = {}
+        ApplicationRecord.descendants.each do |klass|
+          next if klass.abstract_class?
+
+          table = klass.table_name&.to_sym
+          next unless table
+
+          # For STI: prefer the base class (not subclass) so the _fixture
+          # model_class directive points to the right class.
+          existing = map[table]
+          if existing.nil?
+            map[table] = klass.name
+          else
+            existing_klass = existing.constantize rescue nil
+            if existing_klass && existing_klass < klass
+              # existing is a subclass of klass — replace with klass (the base)
+              map[table] = klass.name
+            end
+            # If klass < existing, keep existing (it's already the base)
+            # If neither is a subclass of the other, keep the first one found
+          end
+        end
+        map
       end
 
       def build_join_table(name)
