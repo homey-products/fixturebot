@@ -37,7 +37,8 @@ module FixtureBot
         name: record_name,
         literal_values: row_def.literal_values,
         association_refs: row_def.association_refs,
-        tag_refs: row_def.tag_refs
+        tag_refs: row_def.tag_refs,
+        explicit_id: row_def.explicit_id
       )
     end
   end
