@@ -102,6 +102,133 @@ RSpec.describe FixtureBot::Rails, ".compile" do
     end
   end
 
+  describe ".detect_fixtures_files" do
+    it "finds a single spec/fixtures.rb" do
+      Dir.mktmpdir do |tmpdir|
+        Dir.chdir(tmpdir) do
+          FileUtils.mkdir_p("spec")
+          File.write("spec/fixtures.rb", "")
+
+          files = described_class.send(:detect_fixtures_files)
+          expect(files).to eq(["spec/fixtures.rb"])
+        end
+      end
+    end
+
+    it "finds spec/fixtures/*.rb directory files" do
+      Dir.mktmpdir do |tmpdir|
+        Dir.chdir(tmpdir) do
+          FileUtils.mkdir_p("spec/fixtures")
+          File.write("spec/fixtures/posts.rb", "")
+          File.write("spec/fixtures/users.rb", "")
+
+          files = described_class.send(:detect_fixtures_files)
+          expect(files).to eq(["spec/fixtures/posts.rb", "spec/fixtures/users.rb"])
+        end
+      end
+    end
+
+    it "loads single file first then directory files alphabetically" do
+      Dir.mktmpdir do |tmpdir|
+        Dir.chdir(tmpdir) do
+          FileUtils.mkdir_p("spec/fixtures")
+          File.write("spec/fixtures.rb", "")
+          File.write("spec/fixtures/posts.rb", "")
+          File.write("spec/fixtures/users.rb", "")
+
+          files = described_class.send(:detect_fixtures_files)
+          expect(files).to eq([
+            "spec/fixtures.rb",
+            "spec/fixtures/posts.rb",
+            "spec/fixtures/users.rb"
+          ])
+        end
+      end
+    end
+
+    it "prefers test/ over spec/ when test/ exists" do
+      Dir.mktmpdir do |tmpdir|
+        Dir.chdir(tmpdir) do
+          FileUtils.mkdir_p("test")
+          File.write("test/fixtures.rb", "")
+
+          files = described_class.send(:detect_fixtures_files)
+          expect(files).to eq(["test/fixtures.rb"])
+        end
+      end
+    end
+
+    it "returns empty array when no fixtures found" do
+      Dir.mktmpdir do |tmpdir|
+        Dir.chdir(tmpdir) do
+          files = described_class.send(:detect_fixtures_files)
+          expect(files).to eq([])
+        end
+      end
+    end
+  end
+
+  describe ".detect_output_dir" do
+    it "derives spec/fixtures from spec/fixtures.rb" do
+      result = described_class.send(:detect_output_dir, ["spec/fixtures.rb"])
+      expect(result).to eq("spec/fixtures")
+    end
+
+    it "derives spec/fixtures from spec/fixtures/*.rb files" do
+      result = described_class.send(:detect_output_dir, ["spec/fixtures/users.rb", "spec/fixtures/posts.rb"])
+      expect(result).to eq("spec/fixtures")
+    end
+
+    it "derives test/fixtures from test/fixtures.rb" do
+      result = described_class.send(:detect_output_dir, ["test/fixtures.rb"])
+      expect(result).to eq("test/fixtures")
+    end
+
+    it "falls back to stripping .rb for non-standard paths" do
+      result = described_class.send(:detect_output_dir, ["/custom/path/my_fixtures.rb"])
+      expect(result).to eq("/custom/path/my_fixtures")
+    end
+
+    it "defaults to spec/fixtures for empty array" do
+      result = described_class.send(:detect_output_dir, [])
+      expect(result).to eq("spec/fixtures")
+    end
+  end
+
+  describe ".resolve_fixtures_files" do
+    it "wraps a single string in an array" do
+      Dir.mktmpdir do |tmpdir|
+        path = File.join(tmpdir, "fixtures.rb")
+        File.write(path, "")
+
+        files = described_class.send(:resolve_fixtures_files, path)
+        expect(files).to eq([path])
+      end
+    end
+
+    it "passes through an array" do
+      Dir.mktmpdir do |tmpdir|
+        path1 = File.join(tmpdir, "a.rb")
+        path2 = File.join(tmpdir, "b.rb")
+        File.write(path1, "")
+        File.write(path2, "")
+
+        files = described_class.send(:resolve_fixtures_files, [path1, path2])
+        expect(files).to eq([path1, path2])
+      end
+    end
+
+    it "filters out non-existent files from explicit paths" do
+      Dir.mktmpdir do |tmpdir|
+        existing = File.join(tmpdir, "exists.rb")
+        File.write(existing, "")
+
+        files = described_class.send(:resolve_fixtures_files, [existing, File.join(tmpdir, "nope.rb")])
+        expect(files).to eq([existing])
+      end
+    end
+  end
+
   it "compiles from multiple fixture files" do
     Dir.mktmpdir do |tmpdir|
       users_file = File.join(tmpdir, "users.rb")
