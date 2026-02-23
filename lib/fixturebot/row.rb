@@ -30,6 +30,12 @@ module FixtureBot
       def define_association_methods(table)
         table.belongs_to_associations.each do |assoc|
           define_singleton_method(assoc.name) do |ref|
+            if assoc.polymorphic
+              unless ref.is_a?(Array) && ref.size == 2 && ref.all?
+                raise ArgumentError,
+                  "Polymorphic association `#{assoc.name}` requires a [table, record] tuple, got #{ref.inspect}"
+              end
+            end
             @association_refs[assoc.name] = ref
           end
         end
@@ -51,11 +57,12 @@ module FixtureBot
     end
 
     class Builder
-      def initialize(row:, table:, defaults:, join_tables:, uuid_pk_tables: Set.new)
+      def initialize(row:, table:, defaults:, join_tables:, class_name_map: {}, uuid_pk_tables: Set.new)
         @row = row
         @table = table
         @defaults = defaults
         @join_tables = join_tables
+        @class_name_map = class_name_map
         @uuid_pk_tables = uuid_pk_tables
       end
 
@@ -74,6 +81,8 @@ module FixtureBot
             result[col] = @row.literal_values[col]
           elsif foreign_key_values.key?(col)
             result[col] = foreign_key_values[col]
+          elsif polymorphic_type_values.key?(col)
+            result[col] = polymorphic_type_values[col]
           elsif defaulted_values.key?(col)
             result[col] = defaulted_values[col]
           end
@@ -114,7 +123,26 @@ module FixtureBot
         @foreign_key_values ||= @row.association_refs.each_with_object({}) do |(assoc_name, ref), hash|
           assoc = @table.belongs_to_associations.find { |a| a.name == assoc_name }
           next unless assoc
-          hash[assoc.foreign_key] = generate_key_for_table(assoc.table, ref)
+
+          if assoc.polymorphic && ref.is_a?(Array)
+            # Polymorphic: ref is [table_name, record_name]
+            ref_table, ref_name = ref
+            hash[assoc.foreign_key] = generate_key_for_table(ref_table, ref_name)
+          elsif !assoc.polymorphic
+            # Standard belongs_to
+            hash[assoc.foreign_key] = generate_key_for_table(assoc.table, ref)
+          end
+        end
+      end
+
+      def polymorphic_type_values
+        @polymorphic_type_values ||= @row.association_refs.each_with_object({}) do |(assoc_name, ref), hash|
+          assoc = @table.belongs_to_associations.find { |a| a.name == assoc_name }
+          next unless assoc&.polymorphic && ref.is_a?(Array)
+
+          ref_table, _ref_name = ref
+          class_name = @class_name_map[ref_table.to_sym] || ActiveSupport::Inflector.classify(ref_table.to_s)
+          hash[assoc.type_column] = class_name
         end
       end
 
@@ -130,6 +158,7 @@ module FixtureBot
         @defaulted_values ||= @defaults.each_with_object({}) do |(col, block), result|
           next if @row.literal_values.key?(col)
           next if foreign_key_values.key?(col)
+          next if polymorphic_type_values.key?(col)
 
           fixture = Default::Fixture.new(key: @row.name)
           context = Default::Context.new(literal_values: @row.literal_values)

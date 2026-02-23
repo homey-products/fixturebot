@@ -15,7 +15,7 @@ module FixtureBot
 
       schema = SchemaLoader.load
       fixture_set = FixtureBot.define_from_file(schema, fixtures_file)
-      Compiler.new(fixture_set).compile(output_dir)
+      Compiler.new(fixture_set, schema: schema).compile(output_dir)
     end
 
     def self.resolve_fixtures_file(explicit)

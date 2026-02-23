@@ -24,6 +24,8 @@ module FixtureBot
         schema = Schema.new
         table_names = user_table_names
 
+        eager_load_models!
+
         join_table_names = detect_join_tables(table_names)
 
         (table_names - join_table_names).each do |name|
@@ -33,6 +35,8 @@ module FixtureBot
         join_table_names.each do |name|
           schema.add_join_table(build_join_table(name))
         end
+
+        schema.class_name_map = build_class_name_map
 
         schema
       end
@@ -47,7 +51,7 @@ module FixtureBot
           .reject { |c| framework_column?(c.name) }
           .map { |c| c.name.to_sym }
 
-        associations = @connection.foreign_keys(name).map do |fk|
+        fk_associations = @connection.foreign_keys(name).map do |fk|
           Schema::BelongsTo.new(
             name: association_name(fk.column),
             table: fk.to_table.to_sym,
@@ -55,13 +59,73 @@ module FixtureBot
           )
         end
 
+        poly_associations = detect_polymorphic_associations(name, columns, fk_associations)
+
         Schema::Table.new(
           name: name.to_sym,
           singular_name: singularize(name),
           columns: columns,
-          belongs_to_associations: associations,
+          belongs_to_associations: fk_associations + poly_associations,
           uuid_pk: uuid_pk
         )
+      end
+
+      def detect_polymorphic_associations(table_name, columns, existing_associations)
+        existing_fk_columns = existing_associations.map(&:foreign_key).to_set
+
+        type_columns = columns.select { |c| c.to_s.end_with?("_type") }
+        type_columns.filter_map do |type_col|
+          id_col = :"#{type_col.to_s.sub(/_type$/, '_id')}"
+          next unless columns.include?(id_col)
+          next if existing_fk_columns.include?(id_col)
+
+          assoc_name = type_col.to_s.sub(/_type$/, "").to_sym
+          Schema::BelongsTo.new(
+            name: assoc_name,
+            table: nil, # resolved at row-build time from the tuple
+            foreign_key: id_col,
+            polymorphic: true,
+            type_column: type_col
+          )
+        end
+      end
+
+      def eager_load_models!
+        return unless defined?(::Rails) && ::Rails.application
+
+        begin
+          ::Rails.application.eager_load!
+        rescue => e
+          ::Rails.logger&.warn("FixtureBot: eager_load! failed (#{e.class}: #{e.message}), using already-loaded models")
+        end
+      end
+
+      def build_class_name_map
+        return {} unless defined?(ApplicationRecord)
+
+        map = {}
+        ApplicationRecord.descendants.each do |klass|
+          next if klass.abstract_class?
+
+          table = klass.table_name&.to_sym
+          next unless table
+
+          # For STI: prefer the base class (not subclass) so the _fixture
+          # model_class directive points to the right class.
+          existing = map[table]
+          if existing.nil?
+            map[table] = klass.name
+          else
+            existing_klass = existing.constantize rescue nil
+            if existing_klass && existing_klass < klass
+              # existing is a subclass of klass — replace with klass (the base)
+              map[table] = klass.name
+            end
+            # If klass < existing, keep existing (it's already the base)
+            # If neither is a subclass of the other, keep the first one found
+          end
+        end
+        map
       end
 
       def build_join_table(name)
@@ -103,6 +167,13 @@ module FixtureBot
       end
 
       def singularize(word)
+        if defined?(ApplicationRecord)
+          # Prefer the base class to ensure deterministic results with STI
+          model = ApplicationRecord.descendants
+            .select { |k| k.table_name == word.to_s && !k.abstract_class? }
+            .min_by { |k| k.ancestors.size }
+          return model.model_name.singular.to_sym if model
+        end
         ActiveSupport::Inflector.singularize(word).to_sym
       end
 
